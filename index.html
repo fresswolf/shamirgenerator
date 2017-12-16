@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Shamir generator</title>
+    <script src="secrets.js"></script>
+  </head>
+  <body>
+
+  <h1>Shamir's Secret Sharing generator</h1>
+  <p>Split a secret (password, bank pin, bitcoin private key, etc.) into a defined set of keys and define how many of the keys are needed to recover the original secret.</p>
+  <p>This site is kept as simple as possible for security reasons. For ultimate security, run it on an offline computer. Use at your own risk.</p>
+  <h2>Split</h2>
+  <input id="original" type="text" placeholder="secret" style="width: 100%; margin-bottom: 5px;">
+  <span>Number of shares:</span>
+  <input id="shareCount" type="number" name="quantity" min="2" max="100" value="3">
+  <span>Required shares:</span>
+  <input id="threshold" type="number" name="quantity" min="2" max="100" value="2">
+  <button id="splitButton">Split into shares</button>
+
+  <div id="shares" style="white-space: pre-wrap; word-break: break-word; max-width: 100%;"></div>
+
+  <hr>
+  <h2>Combine</h2>
+  <textarea rows="4" style="width: 100%;" id="sharesInput" type="text" placeholder="Shares, whitespace separated"></textarea>
+  <button id="combineButton">Combine shares</button>
+  <div id="combineResult" style="white-space: pre;"></div>
+
+  <script>
+      document.getElementById("splitButton").onclick = function() {
+          var key = document.getElementById("original").value;
+          if (!key) {
+              alert('Enter a secret');
+              return;
+          }
+          var shareCount = parseInt(document.getElementById("shareCount").value);
+          var threshold = parseInt(document.getElementById("threshold").value);
+
+          if (threshold > shareCount) {
+              alert('Required shares must be lower or equal to the number of shares');
+              return;
+          }
+
+          var shares = secrets.share(secrets.str2hex(key), shareCount, threshold);
+
+          var shareString = "";
+
+          for(var i = 0; i < shares.length; i++) {
+              shareString += "<p>Share " + parseInt(i+1) + "/" + shares.length + ": " + shares[i] + "</p>\n";
+          }
+          document.getElementById("shares").innerHTML = "<h3>Shares</h3>" + shareString;
+      };
+
+      document.getElementById("combineButton").onclick = function() {
+          var sharesInput = document.getElementById("sharesInput").value;
+
+          var shares = sharesInput.split(/[\s ,]+/);
+
+          var comb = secrets.combine(shares);
+
+
+          console.log(shares);
+          console.log(comb);
+
+          var combStr = secrets.hex2str(comb);
+
+          document.getElementById("combineResult").innerHTML = "<h3>Original secret</h3>" + combStr;
+      }
+
+  </script>
+  </body>
+</html>
